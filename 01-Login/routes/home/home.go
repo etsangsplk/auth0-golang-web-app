@@ -1,10 +1,11 @@
 package home
 
 import (
-        templates "github.com/auth0-samples/auth0-golang-web-app/01-Login/routes"
 	"html/template"
 	"net/http"
 	"os"
+
+	templates "github.com/auth0-samples/auth0-golang-web-app/01-Login/routes"
 )
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {

@@ -1,8 +1,9 @@
 package middlewares
 
 import (
-        "github.com/auth0-samples/auth0-golang-web-app/01-Login/app"
 	"net/http"
+
+	"github.com/auth0-samples/auth0-golang-web-app/01-Login/app"
 )
 
 func IsAuthenticated(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {

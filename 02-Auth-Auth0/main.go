@@ -49,11 +49,9 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 
-	"github.com/joho/godotenv"
 	"golang.org/x/oauth2"
 )
 
@@ -69,6 +67,10 @@ var (
 const (
 	grantType = "client_credentials"
 )
+
+// const (
+// 	errTokenError = error.New("Fail to fetch token")
+// )
 
 // type accessTokenRequest struct {
 // 	clientID     string `json:"client_id"`
@@ -89,35 +91,46 @@ func init() {
 func GetAccessToken() (token *oauth2.Token, err error) {
 	reqBody := fmt.Sprintf("{\"client_id\":\"%s\", \"client_secret\":\"%s\",\"audience\":\"%s\",\"grant_type\":\"%s\"}", clientID, clientSecret, audienceURL, grantType)
 	payload := strings.NewReader(reqBody)
-
-	fmt.Println(reqBody)
-
-	req, _ := http.NewRequest("POST", oauthTokenURL, payload)
-
+	req, err := http.NewRequest("POST", oauthTokenURL, payload)
+	if err != nil {
+		return nil, err
+	}
 	req.Header.Add("content-type", "application/json")
 
-	res, _ := http.DefaultClient.Do(req)
-
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println("Sent Access Token Reqest")
 	defer res.Body.Close()
-	body, _ := ioutil.ReadAll(res.Body)
 
-	fmt.Println(res)
-	fmt.Println(string(body))
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println("Received Access Token Response")
 
+	fmt.Printf("Response: %v \n\n", res)
+	fmt.Printf("Response body: %v \n", string(body))
+
+	//token = oauth2.Token{}
 	return nil, err
 }
 
-func main() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
-	}
+// func ExtractJWT() (token *oauth2.Token, err error) {
+// }
 
+func main() {
 	token, err := GetAccessToken()
+
 	if err != nil {
 		fmt.Sprintln("No Token Error: %v", err)
 		return
 	}
-	fmt.Sprintln("Token: %v", token)
+
+	fmt.Println("Token: %v", token)
+
+	//jwt, err := ExtractJWT()
 	// fmt.Println(res)
 	// fmt.Println(string(body))
 }

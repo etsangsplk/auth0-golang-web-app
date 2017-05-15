@@ -43,44 +43,56 @@
 // // 		},
 // // 	}
 // // }
+
 package main
 
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
-	"os"
 	"strings"
 
+	"github.com/joho/godotenv"
 	"golang.org/x/oauth2"
 )
 
 var (
-	domain          string
-	client_id       string
-	client_secret   string
-	oauth_auth_url  string
-	oauth_token_url string
-	audience_url    string
+	domain        string
+	clientID      string
+	clientSecret  string
+	oauthAuthURL  string
+	oauthTokenURL string
+	audienceURL   string
 )
 
+const (
+	grantType = "client_credentials"
+)
+
+// type accessTokenRequest struct {
+// 	clientID     string `json:"client_id"`
+// 	clientSecret string `json:"client_secret"`
+// 	audience     string `json:"audience"`
+// 	grantType    string `json:"grant_type"`
+// }
+
 func init() {
-	domain := os.Getenv("LOCALAVANTI_CLIENT_DOMAIN")
-	client_id := os.Getenv("LOCALAVANTI_CLIENT_ID")
-	client_secret := os.Getenv("LOCALAVANTI_CLIENT_SECRET")
-	os.Getenv("LOCALAVANTI_CLIENT_SECRET")
-	oauth_auth_url := "https://" + domain + "/authorize"
-	oauth_token_url := "https://" + domain + "/oauth/token"
-	audience_url := os.Getenv("AUTH0_DOMAIN")
+	domain = "avantidev.auth0.com"
+	clientID = "FHyiG4fmPaPzIylEm5EbC8TK4GgUtIUf"
+	clientSecret = "43J9cLwCAmkiMHH1wnvmK6dTt9ejL-pvpgoNzXoALDcFOktonq97SREDJ4juWkhe"
+	oauthAuthURL = "https://" + domain + "/authorize"
+	oauthTokenURL = "https://" + domain + "/oauth/token"
+	audienceURL = "http://localhost/avanti/v0.3/"
 }
 
-func AccessTokenRequest() (token *oauth2.Token, err error) {
+func GetAccessToken() (token *oauth2.Token, err error) {
+	reqBody := fmt.Sprintf("{\"client_id\":\"%s\", \"client_secret\":\"%s\",\"audience\":\"%s\",\"grant_type\":\"%s\"}", clientID, clientSecret, audienceURL, grantType)
+	payload := strings.NewReader(reqBody)
 
-	url := oauth_token_url
+	fmt.Println(reqBody)
 
-	payload := strings.NewReader("{\"client_id\":\"wrfvzB9y4tB2t7wKpxiC62VzWvAYwpLx\",\"client_secret\":\"1-4X3ltzTe98m5J7FL0wK179ancCWOxz1hbYfo0VgZgCRUEVNgvYNIaa_9tDabWB\",\"audience\":\"http://localhost/avanti/v0.3/\",\"grant_type\":\"client_credentials\"}")
-
-	req, _ := http.NewRequest("POST", url, payload)
+	req, _ := http.NewRequest("POST", oauthTokenURL, payload)
 
 	req.Header.Add("content-type", "application/json")
 
@@ -96,7 +108,11 @@ func AccessTokenRequest() (token *oauth2.Token, err error) {
 }
 
 func main() {
-	token, err := AccessTokenRequest()
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	token, err := GetAccessToken()
 	if err != nil {
 		fmt.Sprintln("No Token Error: %v", err)
 		return

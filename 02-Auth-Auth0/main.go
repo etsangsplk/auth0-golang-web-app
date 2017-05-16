@@ -98,6 +98,8 @@ type SecurityPrincipal struct {
 	Scopes []string `json:"scopes"`
 }
 
+// type tok jwt.Token
+
 func init() {
 	domain = "avantidev.auth0.com"
 	clientID = "FHyiG4fmPaPzIylEm5EbC8TK4GgUtIUf"
@@ -237,13 +239,17 @@ func GetAccessToken() (token *oauth2.Token, err error) {
 // }
 
 func main() {
+	//type tok *jwt.Token
+	//var myClaims *jwt.Claims
+	//myClaims = &jwt.Claims {}
 
-	access_token := "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2F2YW50aWRldi5hdXRoMC5jb20vIiwic3ViIjoid3JmdnpCOXk0dEIydDd3S3B4aUM2MlZ6V3ZBWXdwTHhAY2xpZW50cyIsImF1ZCI6Imh0dHA6Ly9sb2NhbGhvc3QvYXZhbnRpL3YwLjMvIiwiZXhwIjoxNDk1MDQwMzUwLCJpYXQiOjE0OTQ5NTM5NTAsInNjb3BlIjoiIn0.ExXYa3tQQnJLRM0XEXNhzR1poICLPHBykVlq-0c71a4"
+	access_token := "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2F2YW50aWRldi5hdXRoMC5jb20vIiwic3ViIjoiRkh5aUc0Zm1QYVB6SXlsRW01RWJDOFRLNEdnVXRJVWZAY2xpZW50cyIsImF1ZCI6Imh0dHA6Ly9sb2NhbGhvc3QvYXZhbnRpL3YwLjMvIiwiZXhwIjoxNDk0OTgxMjkwLCJpYXQiOjE0OTQ4OTQ4OTAsInNjb3BlIjoiYWxsOmF2YW50aS5jb250YWluZXIubG9ncyByZWFkOmF2YW50aS5jb250YWluZXIuam9iIHdyaXRlOmF2YW50aS5jb250YWluZXIuam9iIHJlYWQ6YXZhbnRpLmNvbnRhaW5lci5zZXJ2aWNlIHdyaXRlOmF2YW50aS5jb250YWluZXIuc2VydmljZSByZWFkOmF2YW50aS5jb250YWluZXIudGFzayB3cml0ZTphdmFudGkuY29udGFpbmVyLnRhc2sgcmVhZDphdmFudGkuY29udGFpbmVyLnRhc2stZGVmaW5pdGlvbiB3cml0ZTphdmFudGkuY29udGFpbmVyLnRhc2stZGVmaW5pdGlvbiByZWFkOmF2YW50aS5jb250YWluZXIubmFtZXNwYWNlIHdyaXRlOmF2YW50aS5jb250YWluZXIubmFtZXNwYWNlIHJlYWQ6YXZhbnRpLmNvbnRhaW5lci5jbHVzdGUgd3JpdGU6YXZhbnRpLmNvbnRhaW5lci5jbHVzdGVyIn0.aa3OiyToMN82G3OOPoS1MzonOaWGUrNNwnQFFqu_WMQ"
+	//access_token := "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2F2YW50aWRldi5hdXRoMC5jb20vIiwic3ViIjoid3JmdnpCOXk0dEIydDd3S3B4aUM2MlZ6V3ZBWXdwTHhAY2xpZW50cyIsImF1ZCI6Imh0dHA6Ly9sb2NhbGhvc3QvYXZhbnRpL3YwLjMvIiwiZXhwIjoxNDk1MDQwMzUwLCJpYXQiOjE0OTQ5NTM5NTAsInNjb3BlIjoiIn0.ExXYa3tQQnJLRM0XEXNhzR1poICLPHBykVlq-0c71a4"
 	tokenString := access_token
-	var hmacSampleSecret []byte
+	var hmacSecret []byte
 	// BAse64 of string??
-	hmacSampleSecret = []byte("l9rqay1dsOYc4D7SQqHKDTA1rY0FuvfO")
-
+	hmacSecret = []byte("l9rqay1dsOYc4D7SQqHKDTA1rY0FuvfO")
+	//hmacSampleSecret = []byte("c2VjcmV0")
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		// Don't forget to validate the alg is what you expect:
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -251,31 +257,28 @@ func main() {
 		}
 
 		// hmacSampleSecret is a []byte containing your secret, e.g. []byte("my_secret_key")
-		return hmacSampleSecret, nil
+		return hmacSecret, nil
 	})
-
+	if !token.Valid {
+		fmt.Println("Token is invalid\n")
+	}
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		if err = claims.Valid(); err != nil {
+			fmt.Printf("Claim is invalid error: %s \n", err.Error())
+		}
 		fmt.Println(claims["foo"], claims["nbf"])
 	} else {
 		fmt.Println(err)
 	}
 
-	// Print some debug data
 	if token != nil {
 		fmt.Fprintf(os.Stderr, "Header:\n%v\n", token.Header)
 		fmt.Fprintf(os.Stderr, "Claims:\n%v\n", token.Claims)
 	}
 
-	// Print an error if we can't parse for some reason
 	if err != nil {
 		fmt.Printf("Couldn't parse token: %s \n", err.Error())
 	}
-
-	// Is token invalid?
-	if !token.Valid {
-		fmt.Println("Token is invalid\n")
-	}
-
 	// Print the token details
 	if err := printJSON(token.Claims); err != nil {
 		fmt.Printf("Failed to output claims: %s", err.Error())

@@ -47,13 +47,19 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 
 	"golang.org/x/oauth2"
+
+	jwt "github.com/dgrijalva/jwt-go"
+	// "github.com/square/go-jose"
+	// "github.com/square/go-jose/jose-util"
 )
 
 var (
@@ -73,8 +79,24 @@ var (
 )
 
 var (
-	errNilClientID = errors.New("Client Id cannot be nil")
+	errNilClientID         = errors.New("Client Id cannot be nil")
+	errAccessTokenNotFound = errors.New("Access token not found")
 )
+
+const (
+	signSecret = ""
+)
+
+type SecurityPrincipal struct {
+
+	// namespace
+	// Required: true
+	Namespace *string `json:"namespace"`
+
+	// scopes
+	// Required: true
+	Scopes []string `json:"scopes"`
+}
 
 func init() {
 	domain = "avantidev.auth0.com"
@@ -202,26 +224,79 @@ func GetAccessToken() (token *oauth2.Token, err error) {
 	fmt.Println("Received Access Token Response")
 	fmt.Printf("Response: %v \n\n", res)
 	fmt.Printf("Response body: %v \n", string(body))
+	fmt.Printf("Response body: %v \n", string(body))
 
 	return nil, err
 }
 
-// func TestRunJob() error{
+// func ParseAndVerify(access_token *string) (*SecurityPrincipal, error) {
+// 	if access_token != nil {
 
+// 	}
+// 	return nil, errAccessTokenNotFound
 // }
 
 func main() {
+
+	access_token := "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2F2YW50aWRldi5hdXRoMC5jb20vIiwic3ViIjoid3JmdnpCOXk0dEIydDd3S3B4aUM2MlZ6V3ZBWXdwTHhAY2xpZW50cyIsImF1ZCI6Imh0dHA6Ly9sb2NhbGhvc3QvYXZhbnRpL3YwLjMvIiwiZXhwIjoxNDk1MDQwMzUwLCJpYXQiOjE0OTQ5NTM5NTAsInNjb3BlIjoiIn0.ExXYa3tQQnJLRM0XEXNhzR1poICLPHBykVlq-0c71a4"
+	tokenString := access_token
+	var hmacSampleSecret []byte
+	// BAse64 of string??
+	hmacSampleSecret = []byte("l9rqay1dsOYc4D7SQqHKDTA1rY0FuvfO")
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		// Don't forget to validate the alg is what you expect:
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		}
+
+		// hmacSampleSecret is a []byte containing your secret, e.g. []byte("my_secret_key")
+		return hmacSampleSecret, nil
+	})
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		fmt.Println(claims["foo"], claims["nbf"])
+	} else {
+		fmt.Println(err)
+	}
+
+	// Print some debug data
+	if token != nil {
+		fmt.Fprintf(os.Stderr, "Header:\n%v\n", token.Header)
+		fmt.Fprintf(os.Stderr, "Claims:\n%v\n", token.Claims)
+	}
+
+	// Print an error if we can't parse for some reason
+	if err != nil {
+		fmt.Printf("Couldn't parse token: %s \n", err.Error())
+	}
+
+	// Is token invalid?
+	if !token.Valid {
+		fmt.Println("Token is invalid\n")
+	}
+
+	// Print the token details
+	if err := printJSON(token.Claims); err != nil {
+		fmt.Printf("Failed to output claims: %s", err.Error())
+	}
+	fmt.Println("\n\n")
+	// principal, err := ParseAndVerify(&access_token)
+	// if err != nil {
+	// 	fmt.Sprintln("Access Token Verification Error: %v", err)
+	// 	return
+	// }
+	// fmt.Sprintf("Security Principal %v", principal)
 
 	if err := GrantClientAccess(&clientID); err != nil {
 		fmt.Println("Error grant client access error=%s", err)
 	}
 
-	token, err := GetAccessToken()
+	tokenn, err := GetAccessToken()
 	if err != nil {
 		fmt.Sprintln("No Token Error: %v", err)
-		return
 	}
-	fmt.Println("Token: %v", token)
+	fmt.Println("Token: %v", tokenn)
 
 	if err := RevokeClientAccess(&clientID); err != nil {
 		fmt.Println("Error revoke client access error=%s", err)
@@ -230,4 +305,22 @@ func main() {
 	//jwt, err := ExtractJWT()
 	// fmt.Println(res)
 	// fmt.Println(string(body))
+}
+
+// Print a json object in accordance with the prophecy (or the command line options)
+func printJSON(j interface{}) error {
+	var out []byte
+	var err error
+
+	// if *flagCompact == false {
+	out, err = json.MarshalIndent(j, "", "    ")
+	// } else {
+	// 	out, err = json.Marshal(j)
+	// }
+
+	if err == nil {
+		fmt.Println(string(out))
+	}
+
+	return err
 }

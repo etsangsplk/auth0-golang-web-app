@@ -1,0 +1,4 @@
+{"error":"access_denied","error_description":"Unauthorized"}--_curl_--"client_id":"FHyiG4fmPaPzIylEm5EbC8TK4GgUtIUf"
+--_curl_--"client_secret":"43J9cLwCAmkiMHH1wnvmK6dTt9ejL-pvpgoNzXoALDcFOktonq97SREDJ4juWkhe"
+--_curl_--"audience":"http://localhost/avanti/v0.3/"
+--_curl_--"grant_type":"client_credentials"

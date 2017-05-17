@@ -1,49 +1,3 @@
-// package main
-
-// import (
-// 	"log"
-// 	"os"
-// 	"fmt"
-// 	"strings"
-// 	"net/http"
-// 	"io/ioutil"
-// 	// "os"
-// 	// "crypto"
-// 	// "crypto/rand"
-// 	// "crypto/rsa"
-// 	// "crypto/sha256"
-// 	// "crypto/sha512"
-// 	// "encoding/base64"
-// 	// "encoding/json"
-
-// 	"github.com/joho/godotenv"
-// 	"golang.org/x/oauth2"
-// )
-
-// func (this *JWT) ParseAndVerify() (*models.SecurityPrincipal, error) {
-
-// }
-
-// // func main() {
-
-// // 	err := godotenv.Load()
-// // 	if err != nil {
-// // 		log.Fatal("Error loading .env file")
-// // 	}
-
-// // 	domain := os.Getenv("LOCALAVANTI_CLIENT_DOMAN")
-// // 	conf := &oauth2.Config{
-// // 		ClientID:     os.Getenv("LOCALAVANTI__CLIENT_ID"),
-// // 		ClientSecret: os.Getenv("LOCALAVANTI__CLIENT_SECRET"),
-// // 		RedirectURL:  os.Getenv("LOCALAVANTI__CALLBACK_URL"),
-// // 		Scopes:       []string{"openid", "profile"},
-// // 		Endpoint: oauth2.Endpoint{
-// // 			AuthURL:  "https://" + domain + "/authorize",
-// // 			TokenURL: "https://" + domain + "/oauth/token",
-// // 		},
-// // 	}
-// // }
-
 package main
 
 import (
@@ -255,18 +209,23 @@ func main() {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
-
+		//TODO can I very issuer etc here?
 		// hmacSampleSecret is a []byte containing your secret, e.g. []byte("my_secret_key")
 		return hmacSecret, nil
 	})
 	if !token.Valid {
 		fmt.Println("Token is invalid\n")
 	}
+
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		if err = claims.Valid(); err != nil {
 			fmt.Printf("Claim is invalid error: %s \n", err.Error())
 		}
-		fmt.Println(claims["foo"], claims["nbf"])
+		fmt.Printf("SSSScope: %s \n\n\n", claims["scope"])
+
+		for k, v := range claims {
+			fmt.Printf("%s: %s \n", k, v)
+		}
 	} else {
 		fmt.Println(err)
 	}
@@ -284,12 +243,6 @@ func main() {
 		fmt.Printf("Failed to output claims: %s", err.Error())
 	}
 	fmt.Println("\n\n")
-	// principal, err := ParseAndVerify(&access_token)
-	// if err != nil {
-	// 	fmt.Sprintln("Access Token Verification Error: %v", err)
-	// 	return
-	// }
-	// fmt.Sprintf("Security Principal %v", principal)
 
 	if err := GrantClientAccess(&clientID); err != nil {
 		fmt.Println("Error grant client access error=%s", err)

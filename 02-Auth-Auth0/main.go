@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"strings"
 	"time"
@@ -222,10 +223,9 @@ func main() {
 	//second := time.Second
 	seconds := 60 // minimum resoultion is 60sec
 	expireAt := now.Add(-time.Duration(seconds) * time.Second)
-	//h := md5.New()
 	issuer := "https://avantidev.auth0.com/"
 	audience := "http://localhost/avanti/v0.3/"
-	subject := "clientId"
+	subject := fmt.Sprintf("%v@%s", rand.Int(), "clientId")
 	key := []byte("secret")
 	scopes := []string{"foo", "bar"}
 	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.HS256, Key: key}, (&jose.SignerOptions{}).WithType("JWT"))
